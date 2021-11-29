@@ -9,40 +9,77 @@
 
 from typing import Sized
 import bpy
+import math
 
 # ##################################
 # ## ユーティリティ(VSCodeからスクリプト呼び出す場合はソウタイパスによるインポートはできない)
 
 
 def delete_all_objects():
-    "全要素を削除"
-    if len(bpy.data.objects) > 0:
-        print(bpy.data.meshes)
-        print("格子状に🐵を配置")
-        bpy.ops.object.mode_set(mode="OBJECT")
-        bpy.ops.object.select_all(action="SELECT")
-        bpy.ops.object.delete(use_global=False, confirm=False)
+    "全オブジェクトを削除"
+    if len(bpy.context.scene.objects) > 0:
+        bpy.ops.object.delete({"selected_objects": bpy.context.scene.objects})
+    bpy.ops.object.select_all(action="DESELECT")
 
 
 def delete_all_meshes():
-    "全要素を削除"
+    "全メッシュを削除"
     if len(bpy.data.meshes) > 0:
-        print(bpy.data.meshes)
-        print(bpy.data.meshes[0])
-        print("格子状に🐵を配置")
-        bpy.ops.object.mode_set(mode="OBJECT")
-        bpy.ops.object.select_by_type(extend=False, type='MESH')
-        bpy.ops.object.delete()
+        [bpy.data.meshes.remove(mesh) for mesh in bpy.data.meshes]
 
 
 # ## ユーティリティ
 # ##################################
-print("全メッシュを削除")
-delete_all_meshes()
 
-# print("格子状に🐵を配置")
-# for k in range(5):
-#     for j in range(5):
-#         for i in range(5):
-#             bpy.ops.mesh.primitive_monkey_add(size=0.25, location=(i, j, k))
-#             # bpy.ops.mesh.primitive_cone_add(location=(i, j, k))
+# ##################################
+# ## オブジェクト作成
+def step_01_generate_object():
+    print("全メッシュを削除")
+    delete_all_meshes()
+
+    print("格子状に🐵を配置")
+    for k in range(5):
+        for j in range(5):
+            for i in range(5):
+                # bpy.ops.mesh.primitive_monkey_add(size=0.25, location=(i, j, k))
+                bpy.ops.mesh.primitive_cone_add(location=(i, j, k))
+
+
+# ## オブジェクト作成
+# ##################################
+
+# ##################################
+# ## アニメーション
+def step_02_animation():
+    # if bpy.context.object is not None:
+    #     print("全メッシュを削除")
+    #     delete_all_objects()
+    if bpy.context.object is None:
+        print("適当に１つオブジェクト作成")
+        bpy.ops.mesh.primitive_cone_add(location=(0, 0, 0))
+
+    print("アニメーションを付ける")
+    obj = bpy.context.object
+    for i in range(1000):
+        obj.location[0] = math.sin(i)
+        obj.location[1] = math.cos(i)
+        obj.location[2] = math.sin(i) * math.cos(i)
+        obj.keyframe_insert(data_path="location", frame=3 * i)
+        obj.scale = (math.sin(i) + 1, math.sin(i) + 1, math.sin(i) + 1)
+        obj.keyframe_insert(data_path="scale", frame=3 * i)
+
+
+# ## アニメーション
+# ##################################
+
+
+def main():
+    print("オブジェクト作成")
+    # step_01_generate_object()
+
+    print("アニメーション")
+    step_02_animation()
+
+
+if __name__ == "<run_path>":
+    main()
